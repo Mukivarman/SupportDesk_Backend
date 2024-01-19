@@ -24,11 +24,11 @@ const NewTicket=async(req,res)=>{
 
         });
         const createticket=await Ticket.create(newticket);
-        console.log(createticket)
+        console.log(createticket._id)
         
 
         if(createticket){
-            res.status(200).json({msg:"Ticket is Created"})
+            res.status(200).json({ticketID:createticket._id})
         }
         else(
             res.status(400).json({msg:"Ticket creation Failed"})
@@ -60,6 +60,7 @@ const GetTicketsByUser=async(req,res)=>{
 
 const GetOneTicket=async(req,res)=>{
     const ticketid=req.params.Ticketid;
+    console.log(ticketid)
     const data=await Ticket.findById({_id:ticketid})
     res.status(200).json(data);
 

@@ -5,15 +5,16 @@ const {NewTicket,GetAllTickets,GetTicketsByUser,GetOneTicket}=require('../Contro
 const multer=require("multer")
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+const authuser=require('../middleware/auth')
 
 router.post('/Register',Create_user);
 router.post("/Login",Login);
 
-router.post("/profilepic", upload.single('img'),profile_pic);
-router.post("/NewTicket",upload.single("img"),NewTicket);
-router.get("/GetAllTickets",GetAllTickets);
-router.get("/GetTicketByUSer-All/:userid",GetTicketsByUser)
-router.get("/GetOneTicket/:Ticketid",GetOneTicket)
+router.post("/profilepic", upload.single('img'),authuser,profile_pic);
+router.post("/NewTicket",authuser,upload.single("img"),authuser,NewTicket);
+router.get("/GetAllTickets",authuser,GetAllTickets);
+router.get("/GetTicketByUSer-All/:userid",authuser,GetTicketsByUser)
+router.get("/GetOneTicket/:Ticketid",authuser,GetOneTicket)
 
 
 module.exports=router

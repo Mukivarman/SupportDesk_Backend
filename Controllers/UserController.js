@@ -72,9 +72,7 @@ const check=async(dbuser,userPassword,res)=>{
         const token=await jwt.sign({id:dbuser._id},process.env.SecretKey,{ expiresIn: '10d' });
         console.log(token)
         const Loginnewuser={
-            userid:dbuser._id,
             user_name:dbuser.username,
-            emial:dbuser.email,
             power:dbuser.power,
             jwttoken:token
 
