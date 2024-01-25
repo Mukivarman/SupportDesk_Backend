@@ -21,7 +21,7 @@ const userschema=mongoose.Schema;
       },
       power: {
         type: String,
-        default: 'user', 
+        default: 'User', 
             },
       profile_img:{
         type:mongoose.Schema.Types.ObjectId,

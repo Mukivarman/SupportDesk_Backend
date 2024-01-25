@@ -3,7 +3,7 @@ const mongoose=require('mongoose');
 const Ticket=new mongoose.Schema({
     Create_User:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'user',
+        ref:'users',
         required: true,
         index: true,
     },
@@ -11,6 +11,10 @@ const Ticket=new mongoose.Schema({
      type:Date,
      required:true,
 
+    },
+    OccuredTime:{
+        type:String,
+        required:true
     },
     Subject:{
         type:String,
@@ -30,12 +34,18 @@ const Ticket=new mongoose.Schema({
     },
     AssignedUser:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"no",
+        ref:"SupportTeam",
+        default:null
     },
     Screenshots:{
         type:String,
         required:true,
     },
+    CreatedAt:{
+        type:Date,
+        required:true,
+        default:Date.now
+    }
 
 
 

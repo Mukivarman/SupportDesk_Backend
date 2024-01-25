@@ -1,7 +1,7 @@
 const mongoose=require('mongoose')
 
 const newadmin=mongoose.Schema({
-    admin_username:{
+    username:{
    type:String,
    required:true,
    unique:true
@@ -11,13 +11,9 @@ const newadmin=mongoose.Schema({
         required:true,
         unique:true
     },
-    password:{
+    Password:{
         type:String,
         required:true,
-    },
-    profile_img:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Profile_img'
     },
     power:{
         type:String,
@@ -27,3 +23,4 @@ const newadmin=mongoose.Schema({
   
 
 })
+module.exports=mongoose.model("AdminSchema",newadmin)

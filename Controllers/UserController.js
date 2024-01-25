@@ -5,11 +5,13 @@ const {passwordhash,
 
     const bcrypt=require('bcrypt');
     const jwt=require('jsonwebtoken')
-    const profile_img=require('../models/ProfileImgSchema')
+    const profileimg=require('../models/ProfileImgSchema')
     
 
-const user=require('../models/Userschema')
-
+const user=require('../models/Userschema');
+const admin = require('../models/AdminSchema');
+const SupportTeam = require('../models/SupportTeam');
+const Ticket=require('../models/TicketSchema')
 
 /*User registration process*/
 const Create_user=async(req,res)=>{
@@ -21,7 +23,16 @@ const Create_user=async(req,res)=>{
             if(checkpassword(password)){
                 const user_name=await user.findOne({username})
                 const user_email=await user.findOne({email})
-                if(!(user_name)&&!(user_email)){
+
+                const admin_name=await admin.findOne({username})
+                const admin_email=await admin.findOne({email})
+
+                const support_name=await SupportTeam.findOne({username})
+                const support_email=await SupportTeam.findOne({email})
+
+              
+
+                if(!(user_name)&&!(user_email)&&!admin_name&&!admin_email&&!support_name&&!support_email){
                     const hashed= await passwordhash(password);
                     try{
                         if(hashed){
@@ -30,8 +41,9 @@ const Create_user=async(req,res)=>{
                                 email:email,
                                 Password:hashed,
                                })
-                             const create=await  user.create(newuser).then(res.status(200).json({msg:"user created"}))
-                               
+                             const create=await  user.create(newuser)
+                             if(create)(res.status(200).json({msg:"user created"}))
+                               else(res.status(400))
 
                         }
                     }catch(e){
@@ -63,21 +75,42 @@ const Create_user=async(req,res)=>{
 
 /* user Login process*/
 
-const check=async(dbuser,userPassword,res)=>{
+const check=async(clintdb,userPassword,res,pro_img)=>{
+    console.log(clintdb.Password+userPassword)
     
-    const valid=  await bcrypt.compare(userPassword,dbuser.Password);
-
+    const valid=  await bcrypt.compare(userPassword,clintdb.Password);
+    
+    console.log(valid)
     if(valid){
-        console.log(dbuser._id+" uygfu "+dbuser)
-        const token=await jwt.sign({id:dbuser._id},process.env.SecretKey,{ expiresIn: '10d' });
+        
+        const token=await jwt.sign({id:clintdb._id},process.env.SecretKey,{ expiresIn: '10d' });
         console.log(token)
-        const Loginnewuser={
-            user_name:dbuser.username,
-            power:dbuser.power,
+        
+        if(pro_img){
+            console.log('jfnj')
+            const imgexist=await profileimg.findOne({profile_id:clintdb._id})
+
+      const  Loginnewuser={
+            user_name:clintdb.username,
+            power:clintdb.power,
+            pro_img:imgexist?true:false,
+            image:imgexist?imgexist.image:null,
             jwttoken:token
+        }
+        res.status(200).json({msg:"You Are Loggin",loginnewuser:Loginnewuser})
+    }
+        else{
+          const  Loginnewuser={
+                user_name:clintdb.username,
+                power:clintdb.power,
+                jwttoken:token,
+
 
         }
-       res.status(200).json({msg:"You Are Loggin",loginnewuser:Loginnewuser})
+        res.status(200).json({msg:"You Are Loggin",loginnewuser:Loginnewuser})
+    }
+
+      
     }else{
        res.status(400).json({msg:"user not matched"})
     }
@@ -91,28 +124,56 @@ const Login=async(req,res)=>{
             try{
     /*check if using  email tologin*/ 
              if(emailcheck(log_detail)){
-                    const dbuser=await user.findOne({email:log_detail});
-                        if(dbuser){
-                           
-                        await check(dbuser,userPassword,res);
-            
-                        }else{
-                            res.status(400).json({msg:"email not found"})
-                                  }
-                            }
-                else{
-                    const dbuser=await user.findOne({username:log_detail});
-                    if(dbuser){
+                    const userdb=await user.findOne({email:log_detail});
+                    const admindb=await admin.findOne({email:log_detail})
+                    const Supportdb=await SupportTeam.findOne({email:log_detail})
                     
-                    await  check(dbuser,userPassword,res);
-                
-                    }else{
-                        res.status(400).json({msg:"username not found"})
-                        
+                    if(admindb){
+                        const pro_img=false;
+                       await check(admindb,userPassword,res,pro_img);
                     }
-                
+                   
+                    else if(userdb){
+                    console.log('user')
+                           const pro_img=true;
+                        await check(userdb,userPassword,res,pro_img);
             
-            }
+                        }
+                        else if(Supportdb)
+                        {
+                            const pro_img=false;
+                            await check(Supportdb,userPassword,res,pro_img);
+
+                        }
+                    }
+                       
+                     else{
+                            const userdb=await user.findOne({username:log_detail});
+                            const admindb=await admin.findOne({username:log_detail})
+                            const Supportdb=await SupportTeam.findOne({username:log_detail})
+
+                            if(admindb){
+                                const pro_img=false;
+                               await check(admindb,userPassword,res,pro_img);
+                            }
+                           
+                            else if(userdb){
+                            console.log('user')
+                                   const pro_img=true;
+                                await check(userdb,userPassword,res,pro_img);
+                    
+                                }
+                                else if(Supportdb){
+                                    const pro_img=false;
+                                    await check(Supportdb,userPassword,res,pro_img);
+
+                                }else{
+                                    res.status(400).json({msg:"email not found"})
+                                          }
+                
+                                        }
+            
+          
             }catch(e){
                 console.error(e);
             }
@@ -128,30 +189,40 @@ const Login=async(req,res)=>{
 
 
 const profile_pic=async(req,res)=>{
-  
+  const userid=req.authid
   
     const imgBuffer = req.file.buffer;
     const imgBase64 = imgBuffer.toString('base64');
-    const authuser=req.body.authuser;
-    const Loginuser=JSON.parse(authuser)
-      try{
-          const imgexist=await profile_img.findOne({profile_id:Loginuser.userid})
-          if(!imgexist){
+    
 
-              const store_img_db=await profile_img.create({
-                  profile_id:Loginuser.userid,
+
+      try{
+          const imgexist=await profileimg.findOne({profile_id:userid})
+          
+          if(!imgexist){
+              const store_img_db=await profileimg.create({
+                  profile_id:userid,
                   image:imgBase64,
-              }).then(await user.findByIdAndUpdate(Loginuser.userid,{profile_img:store_img_db})).then(res.status(200).json({msg:"img stored"})).then()
+              })
+              console.log(store_img_db +553)
+                if(store_img_db){
+                  const userupdateimg=  await user.findByIdAndUpdate(userid,{profile_img:store_img_db._id},{new:true})
+                    if(userupdateimg){
+                        res.status(200).json({msg:'imge stored',image:imgBase64})
+                    }
+                }
+                
+                
              
-           console.log(store_img_db)
+          
 
           }
           else{
             
-            const imgupdate=  await profile_img.findByIdAndUpdate(imgexist._id,{image:imgBase64},{new:true})
+            const imgupdate=  await profileimg.findByIdAndUpdate(imgexist._id,{image:imgBase64},{new:true})
              
               if(imgupdate){
-                  res.status(200).json({msg:"img Updated"})
+                  res.status(200).json({msg:"img Updated",image:imgBase64})
                 }else{
                   res.status(400).json({msg:"img update failed"})
                 }
@@ -168,11 +239,32 @@ catch(e)
     {
 
     }
-    console.log(JSON.parse(authuser))
+    
   
    
 }
 
 
+const userticketfilter=async(req,res)=>{
+    console.log('hit')
+        const userid=req.authid
+       const filters= req.params.filter
+       
+       if(filters&&userid){
+        if(filters==='Solved'||filters==='Pending'){
+            console.log("solved")
+            const data=await Ticket.find({Create_User:userid,Status:filters}).select('-Screenshots').populate('AssignedUser')
+            if(data){
+                res.status(200).json(data)
+            }
+           
+       }
+       
+       }
+       else{
+        res.status(400)
+       }
+}
 
-module.exports={Create_user,Login,profile_pic};
+
+module.exports={Create_user,Login,profile_pic,userticketfilter};

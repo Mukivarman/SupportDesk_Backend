@@ -4,7 +4,7 @@ const AdminSchema = require('../models/AdminSchema');
 const SupportTeam = require('../models/SupportTeam');
 
 
-const authuser=async(req,res,next)=>{
+const authclint=async(req,res,next)=>{
     try {
         const  authorization = req.headers.authorization;
     
@@ -27,21 +27,39 @@ const authuser=async(req,res,next)=>{
               if(!admin){
                 return res.status(401).json({ msg: "Authentication failed: Invalid user" });
               }else{
-                req.authid=admin._id
-                req.authpower=admin.power
-                next();
+                const  Loginnewuser={
+                    user_name:admin.username,
+                    power:admin.power,
+                    jwttoken:token,
+    
+    
+            }
+            res.status(200).json({msg:"You Are Loggin",loginnewuser:Loginnewuser})
               }
           }else{
-            req.authid=Support._id
-            req.authpower=Support.power
-              next();
+           
+            const  Loginnewuser={
+                user_name:Support.username,
+                power:Support.power,
+                jwttoken:token,
+
+
+        }
+        res.status(200).json({msg:"You Are Loggin",loginnewuser:Loginnewuser})
 
           }
           
         }else{
-          req.authid=authdb._id
-          req.authpower=authdb.power
-            next();
+            const  Loginnewuser={
+                user_name:authdb.username,
+                power:authdb.power,
+                jwttoken:token,
+                pro_img:false
+
+
+        }
+        res.status(200).json({msg:"You Are Loggin",loginnewuser:Loginnewuser})
+
         }
 
     
@@ -52,4 +70,4 @@ const authuser=async(req,res,next)=>{
 
 
 }
-module.exports=authuser
+module.exports=authclint
