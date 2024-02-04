@@ -11,7 +11,7 @@ app.use(express.json({limit:'5mb'}))
 
 app.use("/api/",routes);
 
-
+app.get('/h',(req,res)=>(res.body('hello'))
 
 app.use((req,res,next)=>{
     next();
