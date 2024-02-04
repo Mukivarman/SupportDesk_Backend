@@ -13,9 +13,13 @@ const authuser=async(req,res,next)=>{
         }
     
         const token = authorization.split(" ")[1];
+      
+        if(!token){
+          res.status(400).json({msg:'token need'})
+        }
         const authuser = jwt.verify(token, process.env.SecretKey);
        
-        console.log(authuser.id)
+        console.log(authuser.id+'auth 22')
     
         const authdb = await user.findById({ _id: authuser.id });
         

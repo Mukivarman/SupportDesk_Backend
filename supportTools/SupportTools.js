@@ -1,4 +1,5 @@
 const bcrypt=require('bcrypt')
+require('dotenv').config()
 
 /*pssword hash*/
 const passwordhash=async(password)=>{
@@ -6,7 +7,13 @@ const passwordhash=async(password)=>{
    const saltround=parseInt(process.env.salt);
    const salt=await bcrypt.genSalt(saltround);
    const hash= await bcrypt.hash(password,salt);
-   return hash;
+   if(hash){
+    return hash;
+   }
+   else{
+    return false
+   }
+  
     }catch(e){
         console.log(e)
     }

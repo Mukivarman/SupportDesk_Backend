@@ -19,6 +19,14 @@ const userschema=mongoose.Schema;
         required:true,
         unique:true,
       },
+      department:{
+        type:String,
+        default:'update Department'
+      },
+      EmployeeCode:{
+        type:String,
+        default:'update code'
+      },
       power: {
         type: String,
         default: 'User', 
@@ -27,7 +35,33 @@ const userschema=mongoose.Schema;
         type:mongoose.Schema.Types.ObjectId,
         ref:'profileimg',
       },
-
+      CreatedTickets:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Tickets',
+        default:[]
+      }
+      ],
+      CreatedAT:{
+        type:Date,
+        required:true,
+        default:Date.now,
+      },
+      Notification: [
+        {
+          alerts: {
+            type: String,
+            required: true,
+          },
+          read: {
+            type: Boolean,
+            default: false,
+          },
+          ticket: {
+           type:String,
+            required: true,
+          },
+        },
+      ],
 
 })
 const user=mongoose.model("user",newschema);

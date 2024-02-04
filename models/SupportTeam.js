@@ -23,6 +23,7 @@ const supportteam=mongoose.Schema({
          Assignedtickets:[{
             type:mongoose.Schema.Types.ObjectId,
             ref:'Tickets',
+            unique:true,
             default:[]
          }]
 })

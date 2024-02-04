@@ -3,17 +3,20 @@ const Ticket=require("../models/TicketSchema")
 const jwt=require("jsonwebtoken");
 const SupportTeam = require('../models/SupportTeam');
 const TicketSchema = require('../models/TicketSchema');
+const { findById } = require('../models/ProfileImgSchema');
+const { assign } = require('nodemailer/lib/shared');
 
 
 require('dotenv').config();
 
 
 const NewTicket=async(req,res)=>{
-    const proofimg= await req.file.buffer;
-    const Loginuser=req.authid
-    const TicketDetails=req.body.ticketdetails;
-    const NewTicket=JSON.parse(TicketDetails);
-    
+       const proofimg= await req.file.buffer;
+       const Loginuser=req.authid
+       const TicketDetails=req.body.ticketdetails;
+       const NewTicket=JSON.parse(TicketDetails);
+       try{
+        
     if(proofimg&&Loginuser&&NewTicket){
    
         const newticket=new Ticket({
@@ -27,10 +30,11 @@ const NewTicket=async(req,res)=>{
         });
         
         const createticket=await Ticket.create(newticket);
-        console.log(createticket._id)
+        const updateuser=await  user.findByIdAndUpdate(Loginuser,{$push:{CreatedTickets:createticket._id}})
+    
         
 
-        if(createticket){
+        if(createticket &&updateuser){
             res.status(200).json({ticketID:createticket._id})
         }
         else(
@@ -42,101 +46,157 @@ const NewTicket=async(req,res)=>{
         res.status(400).json({msg:"input details are empty"})
     }
 
+       }catch(e){
+        console.error(e)
+       }
+    
+    
 }
+
+
 const GetAllTickets = async (req, res) => {
    
-    console.log('hit')
-      const data = await Ticket.find().select('-Screenshots').populate('AssignedUser');
-      if(data){
-       
-      return res.status(200).json(data);
-      }else{
-        return res.status(400).json({msg:'error'})
-      }
-  };
+    const clintid=req.authid
+    const power=req.authpower
+    try{
+        if(clintid&&power){
+      
+            const data = await Ticket.find().select('-Screenshots').populate('AssignedUser');
+    
+          if(data)(  res.status(200).json(data))
+          else(res.status(400).json({msg:'data fetch failed'}))
+
+        }else{
+            res.status(400).json({msg:'clintid and power require'})
+        }
+
+    }catch(e){
+        console.log(e)
+    }
+      
+};
   
 const GetTicketsByUser=async(req,res)=>{
-    const userId = req.authid;
-    if(!userId){
-        return res.status(400).json({msg:'userid must'})
-    }
-    console.log(userId)
-    const data=await Ticket.find({Create_User:userId}).maxTimeMS(30000)
-    console.log('ujh')
-    if(data){
-    res.status(200).json(data);}
-    else{
-        res.status(400).json({msg:'internel errror'})
-    }
-    
 
+    const userId = req.authid;
+    const power=req.authpower
+    try{
+         if(!userId&&!power){
+        return res.status(400).json({msg:'userid power must'})
+    }else{
+        const data=await Ticket.find({Create_User:userId})
+        if(data){
+            res.status(200).json(data);}
+            else{
+                res.status(400).json({msg:'internel errror'})
+            }
+    }
+}catch(e){
+    console.log(e)
+}
 }
 
 const GetOneTicket=async(req,res)=>{
     const ticketid=req.params.Ticketid;
-    if(!ticketid){
-        return res.status(400).json({msg:'ticket id is must'})
+    try{
+        if(!ticketid){
+            return res.status(400).json({msg:'ticket id is must'})
+        }
+        else{
+            const data=await Ticket.findById({_id:ticketid}).populate('AssignedUser')
+            if(data)( res.status(200).json(data))
+            else(res.status(400).json())
+        }
+    }catch(e){
+        console.log(e)
     }
-    console.log(ticketid)
-    const data=await Ticket.findById({_id:ticketid}).populate('AssignedUser')
-    
-
-
-
-    res.status(200).json(data);
-
 }
+
 const AssignToTicket=async(req,res)=>{
-
+    const clintid=await req.authid
+    const power=await req.authpower
     const data=await req.body
-    console.log(data)
-    if(data){
-        console.log("shdn")
-        const memberupdate=await SupportTeam.findByIdAndUpdate(data.supportteamid,{$push:{Assignedtickets:data.ticketid}},{new:true})
-        if(memberupdate){
-        const ticketupdate=await Ticket.findByIdAndUpdate(data.ticketid,{AssignedUser:data.supportteamid})
+    
+try{
+    if(clintid&&power&&data&&power==='Admin'&&data.supportteamid&&data.ticketid){
+
       
-        if(ticketupdate){
+        const alreadyAssign=await Ticket.findOne({_id:data.ticketid}).select('AssignedUser')
+        if(alreadyAssign&&alreadyAssign.AssignedUser){
+             return res.status(400).json({msg:"Already thi Ticket Is Assingned "})
+        }else{
+            const assign=await Ticket.findByIdAndUpdate(data.ticketid,{AssignedUser:data.supportteamid,Status:'waiting'},{new:true})
+            if(assign){
+                const memberupdate=await SupportTeam.findByIdAndUpdate(data.supportteamid,{$push:{Assignedtickets:data.ticketid}},{new:true})
+                if(memberupdate){
+                    const getuser=await Ticket.findById(data.ticketid).select('Create_User')
+                    const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                        alerts:`A New Ticket is Assigned to Support Team  Click to View Details `,
+                        ticket:data.ticketid,
+                    }}})
 
-            res.status(200).json({msg:'update'})
-        }
-
-    }
-       
-    }else{
-        res.status(400)
-    }
-
-}
-const ticketfilter=async(req,res)=>{
-    console.log('hit')
-       const filters= req.params.filter
-       
-       if(filters){
-        if(filters==='Solved'||filters==='Pending'){
-            console.log("solved")
-            const data=await Ticket.find({Status:filters}).select('-Screenshots').populate('AssignedUser')
-            if(data){
-                res.status(200).json(data)
+                    return res.status(200).json({msg:'Ticket Assigned Is Successful'})
+                }
+                else{
+                    await Ticket.findByIdAndUpdate({AssignedUser:null})
+                    return res.status(400).json({msg:'Ticket Assigned failed So,e Error'})
+                }
             }
-           
-       } else if(filters==='Unassigned'){
-        const data=await Ticket.find({AssignedUser:null}).select('-Screenshots')
-        if(data){
-            res.status(200).json(data)
         }
+        }
+        else{
+            return res.status(400).json({msg:'REquired Fields ARe Empty'})
+        }
+    
+}catch(e){
+    console.log(e)
+}
+   
+}
 
-       }else if(filters==='Total'){
-        const data =await Ticket.find().select('-Screenshots').populate('AssignedUser')
-        if(data){
-            res.status(200).json(data)
-        }
+const ticketfilter=async(req,res)=>{
+
+       const filters= req.params.filter
+       try{
+        if(filters){
+            if(filters==='Solved'||filters==='Pending'){
+                
+                const data=await Ticket.find({Status:filters}).select('-Screenshots').populate('AssignedUser')
+                if(data){
+                    res.status(200).json(data)
+                }
+                else{
+                    res.status(400).json(
+                        {msg:'data fetch faailed'}
+                    )
+                }
+               
+           } 
+            else if(filters==='Unassigned'){
+                 const data=await Ticket.find({AssignedUser:null}).select('-Screenshots')
+              if(data){
+                res.status(200).json(data)
+              }else{   
+              res.status(400).json( {msg:'data fetch faailed'} )
+            }
+            }
+            else if(filters==='Total'){
+               const data =await Ticket.find().select('-Screenshots').populate('AssignedUser')
+                if(data){
+                    res.status(200).json(data)
+                }else{   
+                    res.status(400).json( {msg:'data fetch faailed'} )
+                }
+           }
+           
+           }else{
+            res.status(400).json({msg:'Filters Required'})
+           }
+       }catch(e){
+        console.error(e)
        }
-       
-       }
-       else{
-        res.status(400)
-       }
+      
+      
 }
 
 const updateticket=async(req,res)=>{
@@ -144,50 +204,77 @@ const updateticket=async(req,res)=>{
     const  power=req.authpower
     const data=req.body
 
-    if(assistid,power,data){
-        if(power==='SupportTeam'){
-                console.log(data)
-               const ticketassigneduser= await  Ticket.findById({_id:data.ticketid})
-               console.log(ticketassigneduser.AssignedUser)
-               if(ticketassigneduser.AssignedUser.equals(assistid)){
-                console.log('match')
-                const updateticket=await Ticket.findByIdAndUpdate(data.ticketid,{Status:data.status},{new:true})
-                if(updateticket){
-                    console.log('updated')
-                    res.status(200).json({msg:'ticket updated'})
-                }
-                else{
-                    res.status(400).json({msg:'update failed'})
-                }
-               }
-        }else{
-            res.status(400).json()
+    try{
+        if(assistid&&power&&data){
+            if(power==='SupportTeam'){
+                   const ticketassigneduser= await  Ticket.findById({_id:data.ticketid})
+            if(ticketassigneduser.AssignedUser.equals(assistid)){
+                   
+                 const updateticket=await Ticket.findByIdAndUpdate(data.ticketid,{Status:data.status},{new:true})
+                    
+                 if(updateticket){
+                            const getuser=await Ticket.findById(data.ticketid).select('Create_User')
+                            const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                                alerts:`Ticket is UPDATED to ${data.status} By Support Team  `,
+                                ticket:data.ticketid,
+                            }}})
+                        res.status(200).json({msg:'ticket updated'})
+                    }
+                    else{
+                        res.status(400).json({msg:'update failed'})
+                    }
+                   }else{
+                    res.status(400).json({msg:'only ticket assigned user olnly update'})
+                   }
+            }else{
+                res.status(400).json()
+            }
         }
+
+    }catch(e){
+        console.error(e);
     }
+
+   
 
 }
 
 
 const  taketickets=async(req,res)=>{
     const assistid=await req.authid
+    const power=await req.authpower
     const id=await req.body
-    console.log(assistid+id.Ticketid+'l170')
-
-    if(assistid&&id.Ticketid){
-        console.log('1')
-        const memberupdate=await SupportTeam.findByIdAndUpdate(assistid,{$push:{Assignedtickets:id.Ticketid}},{new:true})
+    
+    try{
+        if(assistid&&power&&id&&id.Ticketid){
+            const existassign=await TicketSchema.find({_id:id.Ticketid}).select('AssignedUser')
+           
+            if(existassign&&existassign[0].AssignedUser){
+                return res.status(400).json({msg:'alredy teked'})
+            }
+            const memberupdate=await SupportTeam.findByIdAndUpdate(assistid,{$push:{Assignedtickets:id.Ticketid}},{new:true})
         if(memberupdate){
-            console.log('2')
-        const ticketupdate=await Ticket.findByIdAndUpdate(id.Ticketid,{AssignedUser:assistid})
-      
+           const ticketupdate=await Ticket.findByIdAndUpdate(id.Ticketid,{AssignedUser:assistid,Status:'waiting'})
         if(ticketupdate){
-
-            console.log('3')
+            const getuser=await Ticket.findById(id.Ticketid).select('Create_User')
+            const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                alerts:"The New Ticket is Assigned to Support Team  Click to View Details",
+                ticket:id.Ticketid,
+            }}})
             res.status(200).json({msg:'update'})
+        }else{
+            res.status(400).json({msg:'update failed'})
         }
 
-
+        }else{
+            res.status(400).json({msg:"inputs must"})
+        }
+    }
+    }catch(e){
+        console.error(e)
     }
 }
-}
+
+
+
 module.exports={NewTicket,GetAllTickets,GetTicketsByUser,GetOneTicket,AssignToTicket,ticketfilter,updateticket,taketickets}

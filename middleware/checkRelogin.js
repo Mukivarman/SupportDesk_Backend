@@ -15,7 +15,7 @@ const authclint=async(req,res,next)=>{
         const token = authorization.split(" ")[1];
         const authuser = jwt.verify(token, process.env.SecretKey);
        
-        console.log(authuser.id)
+        console.log(authuser.id+"authuser line 18")
     
         const authdb = await user.findById({ _id: authuser.id });
         
