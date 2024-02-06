@@ -84,7 +84,7 @@ const GetTicketsByUser=async(req,res)=>{
          if(!userId&&!power){
         return res.status(400).json({msg:'userid power must'})
     }else{
-        const data=await Ticket.find({Create_User:userId})
+        const data=await Ticket.find({Create_User:userId}).populate('AssignedUser')
         if(data){
             res.status(200).json(data);}
             else{
