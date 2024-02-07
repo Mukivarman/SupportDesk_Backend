@@ -134,7 +134,7 @@ try{
                          }}})
                          const emails=getuser.Create_User.email
                         const subject=`A New Ticket is Assigned to Support Team`
-                        const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
+                        const txt=`A New Ticket is Assigned to Support Team  click to view details  https://main--fascinating-fudge-872a7e.netlify.app/ViewTicketDetails/${data.ticketid}`
                         mailsend(subject,txt,emails)
 
                     return res.status(200).json({msg:'Ticket Assigned Is Successful'})
@@ -224,7 +224,7 @@ const updateticket=async(req,res)=>{
 
                             const email=getuser.Create_User.email
                             const subject=`A New Ticket is Updated`
-                            const txt=`A New Ticket is Updated by Support Team  member click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
+                            const txt=`A New Ticket is Updated by Support Team  member click to view details  https://main--fascinating-fudge-872a7e.netlify.app/ViewTicketDetails/${data.ticketid}`
                              mailsend(subject,txt,email)
 
                         res.status(200).json({msg:'ticket updated'})
@@ -272,7 +272,7 @@ const  taketickets=async(req,res)=>{
             }}})
             const email=getuser.Create_User.email
             const subject=`A New Ticket is Assigned to Support Team`
-            const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
+            const txt=`A New Ticket is Assigned to Support Team  click to view details  https://main--fascinating-fudge-872a7e.netlify.app/ViewTicketDetails/${data.ticketid}`
             mailsend(subject,txt,email)
 
             res.status(200).json({msg:'update'})
