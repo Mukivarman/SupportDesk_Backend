@@ -3,8 +3,6 @@ const Ticket=require("../models/TicketSchema")
 const jwt=require("jsonwebtoken");
 const SupportTeam = require('../models/SupportTeam');
 const TicketSchema = require('../models/TicketSchema');
-const { findById } = require('../models/ProfileImgSchema');
-const { assign } = require('nodemailer/lib/shared');
 const {mailsend}=require('../supportTools/SupportTools')
 
 require('dotenv').config();
@@ -275,7 +273,7 @@ const  taketickets=async(req,res)=>{
             const subject=`A New Ticket is Assigned to Support Team`
             const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
             mailsend(subject,txt)
-            
+
             res.status(200).json({msg:'update'})
         }else{
             res.status(400).json({msg:'update failed'})
