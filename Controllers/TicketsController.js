@@ -127,15 +127,15 @@ try{
             if(assign){
                 const memberupdate=await SupportTeam.findByIdAndUpdate(data.supportteamid,{$push:{Assignedtickets:data.ticketid}},{new:true})
                 if(memberupdate){
-                         const getuser=await Ticket.findById(data.ticketid).select('Create_User')
-                         const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                         const getuser=await Ticket.findById(data.ticketid).select('Create_User').populate('Create_User')
+                         const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User._id,{$push:{Notification:{
                          alerts:`A New Ticket is Assigned to Support Team  Click to View Details `,
                          ticket:data.ticketid,
                          }}})
-
+                         const emails=getuser.Create_User.email
                         const subject=`A New Ticket is Assigned to Support Team`
                         const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
-                        mailsend(subject,txt)
+                        mailsend(subject,txt,emails)
 
                     return res.status(200).json({msg:'Ticket Assigned Is Successful'})
                 }
@@ -215,16 +215,16 @@ const updateticket=async(req,res)=>{
                  const updateticket=await Ticket.findByIdAndUpdate(data.ticketid,{Status:data.status},{new:true})
                     
                  if(updateticket){
-                                const getuser=await Ticket.findById(data.ticketid).select('Create_User')
-                                const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                                const getuser=await Ticket.findById(data.ticketid).select('Create_User').populate('Create_User')
+                                const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User._id,{$push:{Notification:{
                                 alerts:`Ticket is UPDATED to ${data.status} By Support Team  `,
                                 ticket:data.ticketid,
                             }}})
 
-
+                            const email=getuser.Create_User.email
                             const subject=`A New Ticket is Updated`
                             const txt=`A New Ticket is Updated by Support Team  member click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
-                             mailsend(subject,txt)
+                             mailsend(subject,txt,email)
 
                         res.status(200).json({msg:'ticket updated'})
                     }
@@ -264,15 +264,15 @@ const  taketickets=async(req,res)=>{
         if(memberupdate){
            const ticketupdate=await Ticket.findByIdAndUpdate(id.Ticketid,{AssignedUser:assistid,Status:'waiting'})
         if(ticketupdate){
-                const getuser=await Ticket.findById(id.Ticketid).select('Create_User')
-                const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                const getuser=await Ticket.findById(id.Ticketid).select('Create_User').populate('Create_User')
+                const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User._id,{$push:{Notification:{
                 alerts:"The New Ticket is Assigned to Support Team  Click to View Details",
                 ticket:id.Ticketid,
             }}})
-
+            const email=getuser.Create_User.email
             const subject=`A New Ticket is Assigned to Support Team`
             const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
-            mailsend(subject,txt)
+            mailsend(subject,txt,email)
 
             res.status(200).json({msg:'update'})
         }else{

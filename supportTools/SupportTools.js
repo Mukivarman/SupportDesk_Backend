@@ -50,7 +50,7 @@ const checkpassword=(word)=>{
     return space.test(word)? true:false;
 }
 /*sent mail*/
-const mailsend=async(subject,text)=>{
+const mailsend=async(subject,text,email)=>{
 
 try{
     const transport=nodemailer.createTransport({
