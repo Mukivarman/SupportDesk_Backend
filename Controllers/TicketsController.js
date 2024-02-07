@@ -215,7 +215,8 @@ const updateticket=async(req,res)=>{
                  const updateticket=await Ticket.findByIdAndUpdate(data.ticketid,{Status:data.status},{new:true})
                     
                  if(updateticket){
-                                const getuser=await Ticket.findById(data.ticketid).select('Create_User').populate('Create_User')
+                                const getuser=await Ticket.findById(data.ticketid).select('Create_User')
+                                console.log(getuser)
                                 const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User._id,{$push:{Notification:{
                                 alerts:`Ticket is UPDATED to ${data.status} By Support Team  `,
                                 ticket:data.ticketid,
