@@ -6,7 +6,7 @@ require('dotenv').config()
 const sentOtpAndConfirmation=async(req,res)=>{
    const reqemail= req.body
     const email=reqemail.email
-   console.log('hit'+reqemail.email)
+ 
    try{
     if(email){
      if(emailcheck(email)){

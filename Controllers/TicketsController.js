@@ -5,7 +5,7 @@ const SupportTeam = require('../models/SupportTeam');
 const TicketSchema = require('../models/TicketSchema');
 const { findById } = require('../models/ProfileImgSchema');
 const { assign } = require('nodemailer/lib/shared');
-
+const {mailsend}=require('../supportTools/SupportTools')
 
 require('dotenv').config();
 
@@ -84,7 +84,7 @@ const GetTicketsByUser=async(req,res)=>{
          if(!userId&&!power){
         return res.status(400).json({msg:'userid power must'})
     }else{
-        const data=await Ticket.find({Create_User:userId})
+        const data=await Ticket.find({Create_User:userId}).populate('AssignedUser')
         if(data){
             res.status(200).json(data);}
             else{
@@ -129,11 +129,15 @@ try{
             if(assign){
                 const memberupdate=await SupportTeam.findByIdAndUpdate(data.supportteamid,{$push:{Assignedtickets:data.ticketid}},{new:true})
                 if(memberupdate){
-                    const getuser=await Ticket.findById(data.ticketid).select('Create_User')
-                    const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
-                        alerts:`A New Ticket is Assigned to Support Team  Click to View Details `,
-                        ticket:data.ticketid,
-                    }}})
+                         const getuser=await Ticket.findById(data.ticketid).select('Create_User')
+                         const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                         alerts:`A New Ticket is Assigned to Support Team  Click to View Details `,
+                         ticket:data.ticketid,
+                         }}})
+
+                        const subject=`A New Ticket is Assigned to Support Team`
+                        const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
+                        mailsend(subject,txt)
 
                     return res.status(200).json({msg:'Ticket Assigned Is Successful'})
                 }
@@ -213,11 +217,17 @@ const updateticket=async(req,res)=>{
                  const updateticket=await Ticket.findByIdAndUpdate(data.ticketid,{Status:data.status},{new:true})
                     
                  if(updateticket){
-                            const getuser=await Ticket.findById(data.ticketid).select('Create_User')
-                            const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                                const getuser=await Ticket.findById(data.ticketid).select('Create_User')
+                                const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
                                 alerts:`Ticket is UPDATED to ${data.status} By Support Team  `,
                                 ticket:data.ticketid,
                             }}})
+
+
+                            const subject=`A New Ticket is Updated`
+                            const txt=`A New Ticket is Updated by Support Team  member click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
+                             mailsend(subject,txt)
+
                         res.status(200).json({msg:'ticket updated'})
                     }
                     else{
@@ -256,11 +266,16 @@ const  taketickets=async(req,res)=>{
         if(memberupdate){
            const ticketupdate=await Ticket.findByIdAndUpdate(id.Ticketid,{AssignedUser:assistid,Status:'waiting'})
         if(ticketupdate){
-            const getuser=await Ticket.findById(id.Ticketid).select('Create_User')
-            const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
+                const getuser=await Ticket.findById(id.Ticketid).select('Create_User')
+                const usernotyfy=await user.findByIdAndUpdate(getuser.Create_User,{$push:{Notification:{
                 alerts:"The New Ticket is Assigned to Support Team  Click to View Details",
                 ticket:id.Ticketid,
             }}})
+
+            const subject=`A New Ticket is Assigned to Support Team`
+            const txt=`A New Ticket is Assigned to Support Team  click to view details  http://localhost:5173/ViewTicketDetails/${data.ticketid}`
+            mailsend(subject,txt)
+            
             res.status(200).json({msg:'update'})
         }else{
             res.status(400).json({msg:'update failed'})

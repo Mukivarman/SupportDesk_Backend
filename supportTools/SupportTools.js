@@ -1,5 +1,7 @@
-const bcrypt=require('bcrypt')
+const bcrypt=require('bcrypt');
+const { error } = require('console');
 require('dotenv').config()
+const nodemailer=require('nodemailer')
 
 /*pssword hash*/
 const passwordhash=async(password)=>{
@@ -47,5 +49,30 @@ const checkpassword=(word)=>{
         const space=/\s/
     return space.test(word)? true:false;
 }
+/*sent mail*/
+const mailsend=async(subject,text)=>{
 
-module.exports={passwordhash,checkspace,checkpassword,emailcheck}
+try{
+    const transport=nodemailer.createTransport({
+        host:'smtp.gmail.com',
+        port:587,
+        auth:{
+            user:process.env.gmail,
+            pass:process.env.gmailkey,
+        }
+    })
+
+    const options={
+        from:process.env.gmail,
+        to:email,
+        subject:subject,
+        text:text
+    }
+    const sendmail=await transport.sendMail(options)
+
+}
+catch(e){
+    console.error(e)
+}
+}
+module.exports={passwordhash,checkspace,checkpassword,emailcheck,mailsend}
