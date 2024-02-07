@@ -3,7 +3,7 @@ const mongoose=require('mongoose');
 const Ticket=new mongoose.Schema({
     Create_User:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'users',
+        ref:'user',
         required: true,
     },
     OccuredDate:{
