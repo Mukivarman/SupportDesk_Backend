@@ -11,10 +11,7 @@ const Ticket=new mongoose.Schema({
      required:true,
 
     },
-    OccuredTime:{
-        type:String,
-        required:true
-    },
+
     Subject:{
         type:String,
         required:true,
