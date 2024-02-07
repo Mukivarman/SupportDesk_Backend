@@ -5,7 +5,6 @@ const Ticket=new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:'users',
         required: true,
-        index: true,
     },
     OccuredDate:{
      type:Date,
