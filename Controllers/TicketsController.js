@@ -271,7 +271,7 @@ const  taketickets=async(req,res)=>{
             }}})
             const email=getuser.Create_User.email
             const subject=`A New Ticket is Assigned to Support Team`
-            const txt=`A New Ticket is Assigned to Support Team  click to view details  https://main--fascinating-fudge-872a7e.netlify.app/ViewTicketDetails/${data.ticketid}`
+            const txt=`A New Ticket is Assigned to Support Team  click to view details  https://main--fascinating-fudge-872a7e.netlify.app/ViewTicketDetails/${id.Ticketid}`
             mailsend(subject,txt,email)
 
             res.status(200).json({msg:'update'})
