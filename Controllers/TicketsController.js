@@ -159,7 +159,7 @@ const ticketfilter=async(req,res)=>{
        const filters= req.params.filter
        try{
         if(filters){
-            if(filters==='Solved'||filters==='Pending'){
+            if(filters==='Solved'||filters==='Pending'||filters==="waiting"||filters==="OnHold"){
                 
                 const data=await Ticket.find({Status:filters}).select('-Screenshots').populate('AssignedUser')
                 if(data){
