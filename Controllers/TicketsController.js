@@ -19,7 +19,7 @@ const NewTicket=async(req,res)=>{
    
         const newticket=new Ticket({
             Create_User:Loginuser,
-            OccuredDate:NewTicket.date+NewTicket.time,
+            OccuredDate: new Date(`${NewTicket.date}T${NewTicket.time}`),
             Subject:NewTicket.subject,
             Message:NewTicket.message,
             Screenshots:(proofimg.toString('base64')),
