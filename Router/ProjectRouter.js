@@ -47,6 +47,6 @@ router.get('/getchats/:ticketid',authuser,GETchat)
 router.post('/postchat',authuser,SaveChat)
 router.get('/chatlive/:ticketid/:length',Live)
 router.get('/getnotification',authuser,usernotification)
-router.get('/deletenotification/:notificationid',authuser,deleteNotification)
+router.delete('/deletenotification/:notificationid',authuser,deleteNotification)
 
 module.exports=router
